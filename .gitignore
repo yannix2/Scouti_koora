@@ -5,3 +5,5 @@ __pycache__/
 .csv
 .ipynb_checkpoints/ 
 data/
+node_modules/
+dist/
