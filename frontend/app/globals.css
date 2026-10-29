@@ -96,8 +96,8 @@
   --ring: #3e8a5e;
   --chart-1: #123d2b;
   --chart-2: #3e8a5e;
-  --chart-3: #c98a1b;
-  --chart-4: #2f6fae;
+  --chart-3: #6b6a4f;
+  --chart-4: #13201a;
   --chart-5: #d9483b;
   --radius: 0.75rem;
 
@@ -110,10 +110,12 @@
   --chalk-line: #f4f7ef;
   --flag: #d9483b;
   --flag-ink: #b23328;
-  --pos-gk: #b7791f;
-  --pos-df: #2f6fae;
-  --pos-mf: #2e7d4f;
-  --pos-fw: #c23b2f;
+  /* Positions are shades of the pitch itself: deep turf up front, worn goalmouth at the back.
+     Corner-flag red stays reserved for risk and the highlighted player. */
+  --pos-fw: #123d2b;
+  --pos-mf: #2e6a45;
+  --pos-df: #577a65;
+  --pos-gk: #6b6a4f;
 
   --rail: #123d2b;
   --rail-foreground: #f4f7ef;
@@ -157,8 +159,8 @@
   --ring: #5fae80;
   --chart-1: #cfe5d3;
   --chart-2: #5fae80;
-  --chart-3: #e0a743;
-  --chart-4: #6aa5dd;
+  --chart-3: #c2bf98;
+  --chart-4: #e8efe4;
   --chart-5: #ef6a5c;
 
   --turf: #cfe5d3;
@@ -170,10 +172,10 @@
   --chalk-line: #e9f1e4;
   --flag: #ef6a5c;
   --flag-ink: #ff8a7c;
-  --pos-gk: #e0a743;
-  --pos-df: #6aa5dd;
-  --pos-mf: #5fae80;
-  --pos-fw: #ef6a5c;
+  --pos-fw: #e8efe4;
+  --pos-mf: #9fd2b0;
+  --pos-df: #7fa08b;
+  --pos-gk: #c2bf98;
 
   --rail: #12301f;
   --rail-foreground: #e8efe4;

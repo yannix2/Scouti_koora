@@ -19,7 +19,7 @@
     "system": "System",
     "skip": "Skip to content"
   },
-  "coverage": "{players} players · Big 5 leagues · seasons 2020–25",
+  "coverage": "{players} players · Big 5 leagues · seasons ⁦2020–25⁩",
   "positions": {
     "Forward": "Forward",
     "Midfielder": "Midfielder",
@@ -65,7 +65,9 @@
     "viewsOne": "{n} view",
     "whyScore": "Why this score",
     "openReport": "Open report",
-    "backendDown": "The scouting data service isn’t responding. Start the backend (start_services.ps1) and reload."
+    "backendDown": "The scouting data service isn’t responding. Start the backend (start_services.ps1) and reload.",
+    "legendTrending": "Trending",
+    "searchPlaceholderShort": "Search any player…"
   },
   "table": {
     "player": "Player",
@@ -127,7 +129,7 @@
       "bottom_25": "Bottom 25%"
     },
     "radar": "Performance radar",
-    "radarNote": "0–100, where 100 is the top 1% of the Big 5",
+    "radarNote": "Per-90 stats on a 0–100 scale, where 100 is the top 1% of the Big 5",
     "radarTable": "Radar values as a table",
     "categories": "Categories",
     "strengths": "Strengths",
@@ -159,7 +161,7 @@
       "height": "Height",
       "minutes": "Minutes"
     },
-    "notFound": "No player called “{name}” in the database. Coverage is the Big 5 leagues, seasons 2020–25.",
+    "notFound": "No player called “{name}” in the database. Coverage is the Big 5 leagues, seasons ⁦2020–25⁩.",
     "season": "Season {season}",
     "axes": {
       "conversion": "Conversion rate",
@@ -178,7 +180,9 @@
       "left": "Left",
       "right": "Right",
       "both": "Both"
-    }
+    },
+    "valueZero": "No goals or assists this season, so output per €1M is zero.",
+    "notCaptured": "Not captured"
   },
   "verdicts": {
     "ELITE PROSPECT": "Elite prospect",

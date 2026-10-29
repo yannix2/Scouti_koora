@@ -47,16 +47,18 @@ export function PositionChip({ position, className }: { position?: string | null
 }
 
 /** Talent score as a bold number on a thin chalk bar, like a line painted to length. */
-export function TalentMeter({ value, className, compact }: { value?: number | null; className?: string; compact?: boolean }) {
+export function TalentMeter({ value, className, bar = false }: { value?: number | null; className?: string; bar?: boolean; compact?: boolean }) {
   const pct = value == null ? 0 : Math.max(0, Math.min(100, value))
   return (
     <span className={cn("relative inline-flex items-center justify-end gap-2", className)}>
-      <span className={cn("relative h-1.5 overflow-hidden rounded-full bg-muted", compact ? "hidden w-7 sm:block" : "w-10")}>
-        <span
-          className="absolute inset-y-0 start-0 rounded-full bg-turf transition-[width] duration-700 ease-out-expo"
-          style={{ width: `${pct}%` }}
-        />
-      </span>
+      {bar && (
+        <span className="relative h-1.5 w-10 overflow-hidden rounded-full bg-muted">
+          <span
+            className="absolute inset-y-0 start-0 rounded-full bg-turf transition-[width] duration-700 ease-out-expo"
+            style={{ width: `${pct}%` }}
+          />
+        </span>
+      )}
       <span className="w-9 text-end font-semibold">{value == null ? "—" : value.toFixed(1)}</span>
     </span>
   )

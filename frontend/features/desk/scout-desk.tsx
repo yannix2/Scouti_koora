@@ -4,14 +4,15 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { AnimatePresence, LayoutGroup, motion } from "motion/react"
-import { ArrowUpRight, Flame, Sparkles, Users } from "lucide-react"
+import { ArrowUpRight, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Monogram, PositionChip, TalentMeter } from "@/components/player/bits"
+import { PitchMark } from "@/components/player/marks"
 import { PlayerSearch } from "@/components/player/player-search"
 import { SaveButton } from "@/components/player/player-actions"
-import type { PlayerRow, Trending } from "@/lib/api/schemas"
+import type { PlayerRow } from "@/lib/api/schemas"
 import { formatEuro, formatInt, formatNumber, formatPct } from "@/lib/format"
 import { playerHref, toCode, whyStats, type PositionCode } from "@/lib/players"
 import { useI18n } from "@/i18n/client"
@@ -19,28 +20,31 @@ import { interpolate, label } from "@/i18n/translate"
 import { Pitch, type PitchPlayer } from "./pitch"
 
 type Tab = "all" | PositionCode
+export type TrendingPlayer = { Player: string; view_count: number; Position?: string | null }
 const EASE = [0.16, 1, 0.3, 1] as const
 
-export function ScoutDesk({ talent, gems, trending }: { talent: Record<Tab, PlayerRow[]>; gems: PlayerRow[]; trending: Trending }) {
+export function ScoutDesk({ talent, gems, trending }: { talent: Record<Tab, PlayerRow[]>; gems: PlayerRow[]; trending: TrendingPlayer[] }) {
   const { dict, locale, dir } = useI18n()
   const router = useRouter()
   const [tab, setTab] = useState<Tab>("all")
   const [hovered, setHovered] = useState<string | null>(null)
   const rows = talent[tab]
 
+  // One mark per player: ranked talent first, then hidden gems, then trending players we could place.
   const dots: PitchPlayer[] = useMemo(() => {
     const seen = new Set<string>()
     const out: PitchPlayer[] = []
-    for (const p of rows) if (!seen.has(p.Player)) (seen.add(p.Player), out.push({ name: p.Player, position: p.Position, score: p.predicted_talent, kind: "talent" }))
-    for (const p of gems.slice(0, 8))
-      if (!seen.has(p.Player)) (seen.add(p.Player), out.push({ name: p.Player, position: p.Position, score: p.predicted_talent, kind: "gem" }))
+    const add = (p: PitchPlayer) => !seen.has(p.name) && (seen.add(p.name), out.push(p))
+    rows.forEach((p) => add({ name: p.Player, position: p.Position, score: p.predicted_talent, kind: "talent" }))
+    gems.slice(0, 6).forEach((p) => add({ name: p.Player, position: p.Position, score: p.predicted_talent, kind: "gem" }))
+    trending.filter((t) => t.Position).forEach((t) => add({ name: t.Player, position: t.Position, kind: "trending" }))
     return out
-  }, [rows, gems])
+  }, [rows, gems, trending])
 
   return (
     <LayoutGroup>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(24rem,1fr)]">
-        <section className="@container flex min-w-0 flex-col gap-4" aria-label={dict.desk.pitchLabel}>
+        <section className="flex min-w-0 flex-col gap-4" aria-label={dict.desk.pitchLabel}>
           <Pitch
             players={dots}
             highlighted={hovered}
@@ -49,20 +53,23 @@ export function ScoutDesk({ talent, gems, trending }: { talent: Record<Tab, Play
             rtl={dir === "rtl"}
             label={dict.desk.pitchLabel}
           >
-            <PlayerSearch size="lg" />
+            <PlayerSearch size="lg" placeholder={dict.desk.searchPlaceholderShort} />
           </Pitch>
-          <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-2.5 px-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
               <span className="flex items-center gap-1.5">
-                <span className="grid size-4 place-items-center rounded bg-pitch-a"><span className="size-1.5 rounded-full bg-chalk-line" /></span> {dict.desk.legendTalent}
+                <PitchMark kind="talent" /> {dict.desk.legendTalent}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="grid size-4 place-items-center rounded bg-pitch-a"><span className="size-1.5 rotate-45 rounded-[1px] bg-chalk-line" /></span> {dict.desk.legendGem}
+                <PitchMark kind="gem" /> {dict.desk.legendGem}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <PitchMark kind="trending" /> {dict.desk.legendTrending}
               </span>
             </div>
             <TrendingStrip trending={trending} onHover={setHovered} />
           </div>
-          <GemsStrip gems={gems} onHover={setHovered} />
+          <GemsList gems={gems} hovered={hovered} onHover={setHovered} />
         </section>
 
         <section className="flex min-w-0 flex-col self-start overflow-hidden rounded-2xl border bg-card shadow-lg" aria-labelledby="top-talent">
@@ -90,25 +97,25 @@ export function ScoutDesk({ talent, gems, trending }: { talent: Record<Tab, Play
   )
 }
 
-function TrendingStrip({ trending, onHover }: { trending: Trending; onHover: (n: string | null) => void }) {
+function TrendingStrip({ trending, onHover }: { trending: TrendingPlayer[]; onHover: (n: string | null) => void }) {
   const { dict, locale } = useI18n()
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <Flame className="size-3.5 shrink-0 text-flag" aria-hidden />
       <span className="shrink-0 font-medium text-foreground">{dict.desk.trending}</span>
       {trending.length === 0 ? (
         <span className="truncate">{dict.desk.trendingEmpty}</span>
       ) : (
-        <ul className="flex min-w-0 gap-1.5 overflow-x-auto">
-          {trending.slice(0, 5).map((t) => (
-            <li key={t.Player}>
+        // Scrolls sideways; the fading edge says there is more.
+        <ul className="flex min-w-0 gap-1.5 overflow-x-auto pe-6 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] rtl:[mask-image:linear-gradient(to_left,black_85%,transparent)]">
+          {trending.slice(0, 8).map((t) => (
+            <li key={t.Player} className="shrink-0">
               <Link
                 href={playerHref(locale, t.Player)}
                 onMouseEnter={() => onHover(t.Player)}
                 onMouseLeave={() => onHover(null)}
-                className="inline-flex h-6 items-center gap-1 rounded-full border bg-card px-2 whitespace-nowrap text-foreground shadow-xs transition-shadow hover:shadow-md"
+                className="inline-flex h-6 items-center gap-1.5 rounded-full border bg-card px-2 whitespace-nowrap text-foreground shadow-xs transition-shadow hover:shadow-md"
               >
-                {t.Player}
+                <span dir="auto">{t.Player}</span>
                 <span className="text-muted-foreground">{interpolate(t.view_count === 1 ? dict.desk.viewsOne : dict.desk.views, { n: t.view_count })}</span>
               </Link>
             </li>
@@ -119,6 +126,9 @@ function TrendingStrip({ trending, onHover }: { trending: Trending; onHover: (n:
   )
 }
 
+// Age drops out below `sm` so names keep their room on phones.
+const ROW_GRID = "grid-cols-[1.25rem_minmax(0,1fr)_3.75rem_2.75rem] sm:grid-cols-[1.25rem_minmax(0,1fr)_2rem_3.75rem_2.75rem]"
+
 function TalentTable({ rows, hovered, onHover }: { rows: PlayerRow[]; hovered: string | null; onHover: (n: string | null) => void }) {
   const { dict, intl } = useI18n()
   const [open, setOpen] = useState<string | null>(null)
@@ -126,10 +136,10 @@ function TalentTable({ rows, hovered, onHover }: { rows: PlayerRow[]; hovered: s
 
   return (
     <div role="table" aria-label={dict.desk.topTalent} className="flex-1 text-sm">
-      <div role="row" className="grid grid-cols-[1.25rem_minmax(0,1fr)_2rem_3.5rem_4.5rem] items-center gap-2 px-4 py-2 text-[0.7rem] font-medium tracking-wide text-muted-foreground uppercase">
+      <div role="row" className={cn("grid items-center gap-2 px-4 py-2 text-[0.7rem] font-medium tracking-wide text-muted-foreground uppercase", ROW_GRID)}>
         <span role="columnheader">#</span>
         <span role="columnheader">{dict.table.player}</span>
-        <span role="columnheader" className="text-end">{dict.table.age}</span>
+        <span role="columnheader" className="hidden text-end sm:block">{dict.table.age}</span>
         <span role="columnheader" className="text-end">{dict.table.value}</span>
         <span role="columnheader" className="text-end">{dict.table.talent}</span>
       </div>
@@ -146,11 +156,7 @@ function TalentTable({ rows, hovered, onHover }: { rows: PlayerRow[]; hovered: s
               animate={{ opacity: dim ? 0.55 : 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ layout: { type: "spring", stiffness: 380, damping: 36 }, duration: 0.35, ease: EASE, delay: i * 0.025 }}
-              className={cn(
-                "relative border-t border-border/60",
-                i % 2 ? "bg-stripe-b" : "bg-stripe-a",
-                isOpen && "z-10 bg-card shadow-lg"
-              )}
+              className={cn("relative border-t border-border/60", i % 2 ? "bg-stripe-b" : "bg-stripe-a", isOpen && "z-10 bg-card shadow-lg")}
               onMouseEnter={() => onHover(p.Player)}
               onMouseLeave={() => onHover(null)}
             >
@@ -160,7 +166,7 @@ function TalentTable({ rows, hovered, onHover }: { rows: PlayerRow[]; hovered: s
                 onFocus={() => onHover(p.Player)}
                 onBlur={() => onHover(null)}
                 onClick={() => setOpen(isOpen ? null : p.Player)}
-                className="grid w-full grid-cols-[1.25rem_minmax(0,1fr)_2rem_3.5rem_4.5rem] items-center gap-2 px-4 py-2.5 text-start outline-none focus-visible:bg-accent"
+                className={cn("grid w-full items-center gap-2 px-4 py-2.5 text-start outline-none focus-visible:bg-accent", ROW_GRID)}
               >
                 <span role="cell" className="text-xs text-muted-foreground">{i + 1}</span>
                 <span role="cell" className="flex min-w-0 items-center gap-2.5">
@@ -173,9 +179,9 @@ function TalentTable({ rows, hovered, onHover }: { rows: PlayerRow[]; hovered: s
                     </span>
                   </span>
                 </span>
-                <span role="cell" className="text-end">{formatInt(p.Age, intl)}</span>
+                <span role="cell" className="hidden text-end sm:block">{formatInt(p.Age, intl)}</span>
                 <span role="cell" className="text-end text-muted-foreground">{formatEuro(p.market_value_eur, intl)}</span>
-                <span role="cell" className="flex justify-end"><TalentMeter value={p.predicted_talent} compact /></span>
+                <span role="cell" className="flex justify-end"><TalentMeter value={p.predicted_talent} /></span>
               </button>
               <AnimatePresence initial={false}>
                 {isOpen && (
@@ -215,9 +221,7 @@ function WhyScore({ p }: { p: PlayerRow }) {
             className="rounded-lg border bg-background px-2.5 py-2 shadow-xs"
           >
             <dt className="truncate text-[0.7rem] text-muted-foreground">{dict.stats[k]}</dt>
-            <dd className="mt-0.5 text-base font-semibold">
-              {k === "availability_pct" ? formatPct(p[k], intl) : formatNumber(p[k], intl)}
-            </dd>
+            <dd className="mt-0.5 text-base font-semibold">{k === "availability_pct" ? formatPct(p[k], intl) : formatNumber(p[k], intl)}</dd>
           </motion.div>
         ))}
       </dl>
@@ -235,14 +239,15 @@ function WhyScore({ p }: { p: PlayerRow }) {
   )
 }
 
-function GemsStrip({ gems, onHover }: { gems: PlayerRow[]; onHover: (n: string | null) => void }) {
+/** Banded list tied to the diamonds on the pitch: hovering a row lights its diamond, and vice versa. */
+function GemsList({ gems, hovered, onHover }: { gems: PlayerRow[]; hovered: string | null; onHover: (n: string | null) => void }) {
   const { dict, intl, locale } = useI18n()
   return (
-    <section className="mt-2" aria-labelledby="gems">
-      <div className="mb-3 flex items-end justify-between gap-4">
+    <section className="overflow-hidden rounded-2xl border bg-card shadow-md" aria-labelledby="gems">
+      <div className="flex items-end justify-between gap-4 border-b px-4 py-3">
         <div>
           <h2 id="gems" className="flex items-center gap-2 text-base font-semibold">
-            <Sparkles className="size-4 text-pos-gk" aria-hidden />
+            <PitchMark kind="gem" />
             {dict.desk.hiddenGems}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">{dict.desk.hiddenGemsNote}</p>
@@ -254,45 +259,39 @@ function GemsStrip({ gems, onHover }: { gems: PlayerRow[]; onHover: (n: string |
           </Link>
         </Button>
       </div>
-      <ul className="grid gap-3 @md:grid-cols-2 @4xl:grid-cols-3">
+      <ul>
         {gems.slice(0, 6).map((p, i) => (
           <motion.li
             key={p.Player}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 + i * 0.05, duration: 0.5, ease: EASE }}
-            className="min-w-0"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: hovered && hovered !== p.Player ? 0.6 : 1, y: 0 }}
+            transition={{ delay: 0.7 + i * 0.04, duration: 0.4, ease: EASE }}
             onMouseEnter={() => onHover(p.Player)}
             onMouseLeave={() => onHover(null)}
+            className={cn("flex items-center gap-3 border-t border-border/60 px-4 py-2.5 text-sm first:border-t-0", i % 2 ? "bg-stripe-b" : "bg-stripe-a")}
           >
-            <div className="group flex h-full flex-col gap-3 rounded-xl border bg-card p-3.5 shadow-sm transition-[box-shadow,translate] duration-300 ease-out-expo hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="flex items-start gap-2.5">
-                <Monogram name={p.Player} position={p.Position} />
-                <div className="min-w-0 flex-1">
-                  <Link href={playerHref(locale, p.Player)} dir="auto" className="block truncate text-start font-medium hover:underline">
-                    {p.Player}
-                  </Link>
-                  <p className="truncate text-xs text-muted-foreground">{[p.Squad, p.League].filter(Boolean).join(" · ")}</p>
-                </div>
-                <SaveButton name={p.Player} />
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <PositionChip position={p.Position} />
-                <span className="text-muted-foreground">
-                  {formatInt(p.Age, intl)} · {formatEuro(p.market_value_eur, intl)}
-                </span>
-              </div>
-              <div className="mt-auto flex items-center justify-between border-t pt-2.5">
-                <Link
-                  href={`/${locale}/discover?tab=similar&ref=${encodeURIComponent(p.Player)}`}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
-                >
-                  <Users className="size-3.5" />
-                  {dict.actions.similar}
+            <Monogram name={p.Player} position={p.Position} size="sm" />
+            <span className="min-w-0 flex-1">
+              <Link href={playerHref(locale, p.Player)} dir="auto" className="block truncate text-start font-medium hover:underline" onFocus={() => onHover(p.Player)} onBlur={() => onHover(null)}>
+                {p.Player}
+              </Link>
+              <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                <PositionChip position={p.Position} className="h-4 px-1 text-[0.6rem]" />
+                <span dir="auto" className="truncate">{p.Squad}</span>
+              </span>
+            </span>
+            <span className="hidden text-xs text-muted-foreground sm:inline">
+              {formatInt(p.Age, intl)} · {formatEuro(p.market_value_eur, intl)}
+            </span>
+            <TalentMeter value={p.predicted_talent} />
+            <span className="flex items-center">
+              <SaveButton name={p.Player} />
+              <Button asChild variant="ghost" size="icon-sm" aria-label={`${dict.actions.similar}: ${p.Player}`}>
+                <Link href={`/${locale}/discover?tab=similar&ref=${encodeURIComponent(p.Player)}`}>
+                  <Users />
                 </Link>
-                <TalentMeter value={p.predicted_talent} />
-              </div>
-            </div>
+              </Button>
+            </span>
           </motion.li>
         ))}
       </ul>

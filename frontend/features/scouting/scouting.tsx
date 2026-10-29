@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { motion } from "motion/react"
-import { Bookmark, Clock, Eye, Globe, Lock, Plus, Search, Sparkles, Trash2, ArrowLeftRight } from "lucide-react"
+import { Bookmark, Clock, Crosshair, Eye, Globe, Lock, Plus, Search, Trash2, ArrowLeftRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -94,7 +94,7 @@ function ForYou() {
   const { dict, locale } = useI18n()
   const { data, isLoading } = usePersonalized()
   return (
-    <Panel title={dict.scouting.forYou} icon={Sparkles} note={dict.scouting.forYouNote}>
+    <Panel title={dict.scouting.forYou} icon={Crosshair} note={dict.scouting.forYouNote}>
       {isLoading ? (
         <Rows n={6} />
       ) : !data?.length ? (

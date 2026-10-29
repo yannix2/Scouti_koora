@@ -70,6 +70,8 @@ test("register, save a player, build a list", async ({ page }) => {
   await page.goto("/en/scouting")
   await expect(page.getByRole("link", { name: "Hugo Bueno", exact: true })).toBeVisible()
   await expect(page.getByText("Viewed").first()).toBeVisible()
+  // Personalized recs load last; capture the loaded state, not the skeleton
+  await expect(page.locator("section", { hasText: "Recommended for you" }).getByRole("link").first()).toBeVisible({ timeout: 45_000 })
   await shot(page, "scouting")
 
   await page.getByRole("link", { name: /Left backs U23/ }).click()

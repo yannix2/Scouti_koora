@@ -9,6 +9,7 @@ import { Monogram, PositionChip } from "@/components/player/bits"
 import { PerformanceRadar } from "@/features/report/radar-chart"
 import { ReportActions, TrackView } from "@/features/report/report-client"
 import { AxisName } from "@/features/report/axis-name"
+import { MiniPitch } from "@/features/report/mini-pitch"
 import { getProfile, getRadar, getReport, getSimilar } from "@/lib/api/server"
 import type { PlayerRow, Profile, Radar, Report } from "@/lib/api/schemas"
 import { formatEuro, formatInt, formatNumber, formatPct } from "@/lib/format"
@@ -89,7 +90,7 @@ async function ReportData({ params }: { params: PageProps<"/[locale]/players/[sl
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{player}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {[profile.Squad, profile.League ? leagueName[profile.League] ?? profile.League : null, profile.season ? interpolate(dict.report.season, { season: profile.season }) : null]
+                {[profile.Squad, profile.League ? leagueName[profile.League] ?? profile.League : null, profile.season ? interpolate(dict.report.season, { season: `⁦${profile.season}⁩` }) : null]
                   .filter(Boolean)
                   .join(" · ")}
               </p>
@@ -136,7 +137,10 @@ async function ReportData({ params }: { params: PageProps<"/[locale]/players/[sl
             </div>
             <div className="flex flex-col gap-2 border-t p-5 md:border-t-0 md:border-s md:p-6">
               <p className="text-xs font-medium text-muted-foreground">{dict.report.profile}</p>
-              <p className="text-2xl font-semibold tracking-tight">{dict.report.bands[report.profile.band]}</p>
+              <div className="flex items-center gap-4">
+                <p className="text-2xl font-semibold tracking-tight">{dict.report.bands[report.profile.band]}</p>
+                <MiniPitch position={report.position} className="ms-auto w-24 shrink-0 rounded-md shadow-sm" />
+              </div>
               <p className="text-xs text-muted-foreground">{interpolate(dict.report.profileNote, { pos: posName.toLowerCase(), cats: cats.toLowerCase() })}</p>
             </div>
           </div>
@@ -196,7 +200,11 @@ async function ReportData({ params }: { params: PageProps<"/[locale]/players/[sl
                   <dt className="text-muted-foreground">{dict.report.valueScore}</dt>
                   <dd className="font-medium">{report.value_assessment.value_score.toFixed(0)}</dd>
                 </div>
-                <PaintBar value={report.value_assessment.value_score} tone="bg-pos-gk" />
+                {report.value_assessment.value_score >= 0.5 ? (
+                  <PaintBar value={report.value_assessment.value_score} tone="bg-pos-gk" />
+                ) : (
+                  <p className="text-xs text-muted-foreground">{dict.report.valueZero}</p>
+                )}
               </div>
             </dl>
           </section>
@@ -210,11 +218,15 @@ async function ReportData({ params }: { params: PageProps<"/[locale]/players/[sl
             <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
               <div>
                 <dt className="text-muted-foreground">{dict.report.injuries}</dt>
-                <dd className="text-2xl font-semibold">{formatInt(report.injury_risk.total_injuries, intl)}</dd>
+                <dd className="text-2xl font-semibold">
+                  {report.injury_risk.score == null && report.injury_risk.total_injuries === 0 ? "—" : formatInt(report.injury_risk.total_injuries, intl)}
+                </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">{dict.report.daysOut}</dt>
-                <dd className="text-2xl font-semibold">{report.injury_risk.total_days_out == null ? "—" : formatInt(report.injury_risk.total_days_out, intl)}</dd>
+                <dd className="text-2xl font-semibold" title={report.injury_risk.score == null ? dict.report.notCaptured : undefined}>
+                  {report.injury_risk.score == null || report.injury_risk.total_days_out == null ? "—" : formatInt(report.injury_risk.total_days_out, intl)}
+                </dd>
               </div>
             </dl>
             {report.injury_risk.score == null ? (

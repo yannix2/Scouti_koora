@@ -19,7 +19,7 @@
     "system": "Système",
     "skip": "Aller au contenu"
   },
-  "coverage": "{players} joueurs · Big 5 · saisons 2020–25",
+  "coverage": "{players} joueurs · Big 5 · saisons ⁦2020–25⁩",
   "positions": {
     "Forward": "Attaquant",
     "Midfielder": "Milieu",
@@ -65,7 +65,9 @@
     "viewsOne": "{n} vue",
     "whyScore": "Pourquoi ce score",
     "openReport": "Ouvrir le rapport",
-    "backendDown": "Le service de données ne répond pas. Lancez le backend (start_services.ps1) puis rechargez."
+    "backendDown": "Le service de données ne répond pas. Lancez le backend (start_services.ps1) puis rechargez.",
+    "legendTrending": "Tendance",
+    "searchPlaceholderShort": "Chercher un joueur…"
   },
   "table": {
     "player": "Joueur",
@@ -127,7 +129,7 @@
       "bottom_25": "25 % inférieurs"
     },
     "radar": "Radar de performance",
-    "radarNote": "0–100, où 100 correspond au top 1 % du Big 5",
+    "radarNote": "Statistiques par 90 min sur une échelle de 0 à 100, où 100 correspond au top 1 % du Big 5",
     "radarTable": "Valeurs du radar sous forme de tableau",
     "categories": "Catégories",
     "strengths": "Points forts",
@@ -159,7 +161,7 @@
       "height": "Taille",
       "minutes": "Minutes"
     },
-    "notFound": "Aucun joueur nommé « {name} » dans la base. Couverture : Big 5, saisons 2020–25.",
+    "notFound": "Aucun joueur nommé « {name} » dans la base. Couverture : Big 5, saisons ⁦2020–25⁩.",
     "season": "Saison {season}",
     "axes": {
       "conversion": "Taux de conversion",
@@ -178,7 +180,9 @@
       "left": "Gauche",
       "right": "Droit",
       "both": "Les deux"
-    }
+    },
+    "valueZero": "Aucun but ni passe décisive cette saison : production par M€ nulle.",
+    "notCaptured": "Non collecté"
   },
   "verdicts": {
     "ELITE PROSPECT": "Espoir d’élite",

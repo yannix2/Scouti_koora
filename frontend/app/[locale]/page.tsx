@@ -2,7 +2,7 @@ import { Suspense } from "react"
 import { connection } from "next/server"
 import { ScoutDesk } from "@/features/desk/scout-desk"
 import { BlockSkeleton, ErrorPanel, PageFrame, PageHeader } from "@/components/shell/page"
-import { getHiddenGems, getTopTalent, getTrending } from "@/lib/api/server"
+import { getHiddenGems, getProfile, getTopTalent, getTrending } from "@/lib/api/server"
 import { codeToApiPosition } from "@/lib/players"
 import { getDictionary } from "@/i18n/dictionaries"
 import { interpolate } from "@/i18n/translate"
@@ -35,7 +35,11 @@ async function DeskData() {
       getTopTalent(codeToApiPosition.GK),
       getHiddenGems(),
     ])
-    const trending = await getTrending().catch(() => [])
+    // Trending only returns names and counts; look up positions (cached) so they can be marked on the pitch.
+    const views = await getTrending().catch(() => [])
+    const trending = await Promise.all(
+      views.slice(0, 8).map(async (t) => ({ ...t, Position: (await getProfile(t.Player).catch(() => null))?.Position ?? null }))
+    )
     return <ScoutDesk talent={{ all, FW, MF, DF, GK }} gems={gems} trending={trending} />
   } catch {
     return <ErrorPanel message={dict.desk.backendDown} />

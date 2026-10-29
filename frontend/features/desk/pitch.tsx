@@ -4,7 +4,7 @@ import { useMemo, type ReactNode } from "react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { hash01, toCode, type PositionCode } from "@/lib/players"
 
-export type PitchPlayer = { name: string; position?: string | null; score?: number | null; kind: "talent" | "gem" }
+export type PitchPlayer = { name: string; position?: string | null; score?: number | null; kind: "talent" | "gem" | "trending" }
 
 // FIFA pitch in metres: 105 × 68. Every marking is one path so it can be "painted" with pathLength.
 const LINES = [
@@ -94,12 +94,13 @@ export function Pitch({
 }) {
   const reduce = useReducedMotion()
   const placed = useMemo(() => place(players, rtl), [players, rtl])
-  const paint = (i: number) => (reduce ? { duration: 0 } : { duration: 1.1, delay: 0.15 + i * 0.07, ease: EASE })
-  const linesDone = reduce ? 0 : 0.15 + LINES.length * 0.07 + 0.4
+  // The line-marking pass: every marking painted within 600ms, then the players run on.
+  const paint = (i: number) => (reduce ? { duration: 0 } : { duration: 0.42, delay: 0.04 + i * 0.01, ease: EASE })
+  const linesDone = reduce ? 0 : 0.6
 
   return (
     <div className="relative isolate rounded-2xl shadow-xl">
-      <svg viewBox="-3 -3 111 74" className="block h-auto w-full" role="img" aria-label={label}>
+      <svg viewBox="-3 -3 111 74" className="block h-auto w-full" role="group" aria-label={label}>
         <defs>
           <clipPath id="pitch-clip">
             <rect x="-3" y="-3" width="111" height="74" rx="2.5" />
@@ -140,7 +141,7 @@ export function Pitch({
             fill="var(--chalk-line)"
             initial={{ opacity: reduce ? 1 : 0 }}
             animate={{ opacity: 0.92 }}
-            transition={{ delay: reduce ? 0 : 0.5 + i * 0.1 }}
+            transition={{ delay: reduce ? 0 : 0.3 + i * 0.05 }}
           />
         ))}
 
@@ -154,14 +155,27 @@ export function Pitch({
                   initial={{ opacity: 0, scale: reduce ? 1 : 0.2 }}
                   animate={{ opacity: highlighted && !on ? 0.55 : 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.4 }}
-                  transition={{ delay: reduce ? 0 : linesDone + i * 0.035, duration: 0.45, ease: EASE }}
+                  transition={{ delay: reduce ? 0 : linesDone + i * 0.02, duration: 0.35, ease: EASE }}
                   style={{ transformOrigin: `${p.x}px ${p.y}px`, transformBox: "view-box" }}
-                  className="cursor-pointer outline-none"
-                  tabIndex={-1}
+                  className="cursor-pointer outline-none [&:focus-visible>.focus-ring]:opacity-100"
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`${p.name}${p.score != null ? `, ${p.score.toFixed(0)}` : ""}`}
                   onMouseEnter={() => onHover(p.name)}
                   onMouseLeave={() => onHover(null)}
+                  onFocus={() => onHover(p.name)}
+                  onBlur={() => onHover(null)}
                   onClick={() => onOpen(p.name)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      onOpen(p.name)
+                    }
+                  }}
                 >
+                  {/* Generous invisible hit area so dots are tappable on phones */}
+                  <circle cx={p.x} cy={p.y} r={3.2} fill="transparent" />
+                  <circle className="focus-ring opacity-0" cx={p.x} cy={p.y} r={2.4} fill="none" stroke="var(--chalk-line)" strokeWidth={0.3} strokeDasharray="0.8 0.6" />
                   <title>{`${p.name}${p.score != null ? ` · ${p.score.toFixed(0)}` : ""}`}</title>
                   {on && (
                     <motion.circle
@@ -176,7 +190,15 @@ export function Pitch({
                       transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
                     />
                   )}
-                  {p.kind === "gem" ? (
+                  {p.kind === "trending" ? (
+                    <motion.circle
+                      cx={p.x}
+                      cy={p.y}
+                      fill="none"
+                      animate={{ r: on ? 1.5 : 1.15, stroke: on ? "var(--flag)" : "var(--chalk-line)" }}
+                      strokeWidth={0.45}
+                    />
+                  ) : p.kind === "gem" ? (
                     <motion.rect
                       x={p.x - 0.95}
                       y={p.y - 0.95}
@@ -202,9 +224,9 @@ export function Pitch({
                     x={p.x}
                     y={p.y + 3.1}
                     textAnchor="middle"
-                    className="pointer-events-none select-none"
+                    className={on ? "pointer-events-none select-none" : "pointer-events-none select-none max-sm:hidden"}
                     fill="var(--chalk-line)"
-                    fontSize={on ? 2.1 : 1.75}
+                    fontSize={on ? 2.6 : 1.75}
                     fontWeight={on ? 600 : 500}
                     opacity={on ? 1 : 0.85}
                     style={{ paintOrder: "stroke", stroke: "rgb(8 32 22 / 0.55)", strokeWidth: 0.5 }}
@@ -222,7 +244,7 @@ export function Pitch({
         <motion.div
           initial={{ opacity: 0, y: reduce ? 0 : 14, filter: reduce ? "none" : "blur(6px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: reduce ? 0 : 0.55, duration: 0.7, ease: EASE }}
+          transition={{ delay: reduce ? 0 : 0.3, duration: 0.6, ease: EASE }}
           className="absolute inset-x-0 top-1/2 z-10 mx-auto w-[min(26rem,78%)] -translate-y-1/2"
         >
           {children}

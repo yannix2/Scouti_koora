@@ -30,17 +30,18 @@ export function useAxisLabel() {
 }
 
 export function PerformanceRadar({ axes, compare, names }: { axes: Axis[]; compare?: Axis[]; names?: [string, string] }) {
-  const { dict } = useI18n()
+  const { dict, dir } = useI18n()
   const axisLabel = useAxisLabel()
-  const data = axes.map((a, i) => ({ axis: axisLabel(a.label), a: a.value, b: compare?.[i]?.value }))
+  // Radar ticks stay short: the "per 90" suffix is in the note, and long Arabic labels would collide.
+  const data = axes.map((a, i) => ({ axis: axisLabel(a.label).replace(/ (p90|\/90|لكل 90)$/, ""), a: a.value, b: compare?.[i]?.value }))
 
   return (
     <div>
       <div className="h-[19rem] w-full" aria-hidden>
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={data} outerRadius="74%">
+          <RadarChart data={data} outerRadius={dir === "rtl" ? "60%" : "68%"}>
             <PolarGrid stroke="var(--border)" />
-            <PolarAngleAxis dataKey="axis" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
+            <PolarAngleAxis dataKey="axis" tick={{ fill: "var(--muted-foreground)", fontSize: dir === "rtl" ? 10 : 11 }} />
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
             <Tooltip
               contentStyle={{

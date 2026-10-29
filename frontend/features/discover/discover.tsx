@@ -176,9 +176,9 @@ export function Discover() {
   return (
     <div className="flex flex-col gap-5">
       <Tabs value={f.tab} onValueChange={(v) => setF({ tab: v as (typeof TABS)[number] })}>
-        <TabsList className="max-w-full justify-start overflow-x-auto">
+        <TabsList className="grid w-full grid-cols-3 sm:inline-flex sm:w-auto">
           {TABS.map((t) => (
-            <TabsTrigger key={t} value={t} className="px-4">
+            <TabsTrigger key={t} value={t} className="px-2 text-xs sm:px-4 sm:text-sm">
               {dict.discover.tabs[t]}
             </TabsTrigger>
           ))}
@@ -282,7 +282,7 @@ function ResultsTable({
         <thead className="text-start text-[0.7rem] tracking-wide text-muted-foreground uppercase">
           <tr>
             <th scope="col" className="px-4 py-2.5 text-start font-medium">{dict.table.player}</th>
-            <th scope="col" className="px-3 py-2.5 text-start font-medium">{dict.table.pos}</th>
+            <th scope="col" className="hidden px-3 py-2.5 text-start font-medium sm:table-cell">{dict.table.pos}</th>
             <Head k="age" className="hidden text-end md:table-cell">{dict.table.age}</Head>
             <th scope="col" className="hidden px-3 py-2.5 text-start font-medium lg:table-cell">{dict.table.style}</th>
             <Head k="value" className="hidden text-end sm:table-cell">{dict.table.value}</Head>
@@ -307,13 +307,14 @@ function ResultsTable({
                     <Monogram name={p.Player} position={p.Position} size="sm" />
                     <span className="min-w-0">
                       <span dir="auto" className="block truncate text-start font-medium group-hover:underline">{p.Player}</span>
-                      <span className="block truncate text-xs text-muted-foreground">
-                        {[p.Squad, p.League ? (leagueName[p.League] ?? p.League) : null].filter(Boolean).join(" · ")}
+                      <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                        <PositionChip position={p.Position} className="h-4 px-1 text-[0.6rem] sm:hidden" />
+                        <span dir="auto" className="truncate">{[p.Squad, p.League ? (leagueName[p.League] ?? p.League) : null].filter(Boolean).join(" · ")}</span>
                       </span>
                     </span>
                   </Link>
                 </td>
-                <td className="px-2 py-2.5"><PositionChip position={p.Position} /></td>
+                <td className="hidden px-2 py-2.5 sm:table-cell"><PositionChip position={p.Position} /></td>
                 <td className="hidden px-3 py-2.5 text-end md:table-cell">{formatInt(p.Age, intl)}</td>
                 <td className="hidden max-w-40 truncate px-3 py-2.5 text-muted-foreground lg:table-cell">{p.style_label ? label(dict.styles, p.style_label) : "—"}</td>
                 <td className="hidden px-3 py-2.5 text-end sm:table-cell">{formatEuro(p.market_value_eur, intl)}</td>
