@@ -29,6 +29,24 @@ export function useAxisLabel() {
   }
 }
 
+type TickProps = { x?: number; y?: number; textAnchor?: "start" | "middle" | "end" | "inherit"; payload?: { value: string }; rtl?: boolean }
+
+/** Two-line axis label: long names (Arabic especially) split at the middle space so neighbours never collide. */
+function AxisTick({ x = 0, y = 0, textAnchor = "middle", payload, rtl }: TickProps) {
+  const text = payload?.value ?? ""
+  const words = text.split(" ")
+  const lines = words.length > 1 && text.length > 9 ? [words.slice(0, Math.ceil(words.length / 2)).join(" "), words.slice(Math.ceil(words.length / 2)).join(" ")] : [text]
+  return (
+    <text x={x} y={y} textAnchor={textAnchor} direction={rtl ? "rtl" : "ltr"} fontSize={rtl ? 10.5 : 11} fill="var(--muted-foreground)">
+      {lines.map((line, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? (lines.length > 1 ? "-0.35em" : "0.35em") : "1.15em"}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  )
+}
+
 export function PerformanceRadar({ axes, compare, names }: { axes: Axis[]; compare?: Axis[]; names?: [string, string] }) {
   const { dict, dir } = useI18n()
   const axisLabel = useAxisLabel()
@@ -39,9 +57,9 @@ export function PerformanceRadar({ axes, compare, names }: { axes: Axis[]; compa
     <div>
       <div className="h-[19rem] w-full" aria-hidden>
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={data} outerRadius={dir === "rtl" ? "60%" : "68%"}>
+          <RadarChart data={data} outerRadius="68%">
             <PolarGrid stroke="var(--border)" />
-            <PolarAngleAxis dataKey="axis" tick={{ fill: "var(--muted-foreground)", fontSize: dir === "rtl" ? 10 : 11 }} />
+            <PolarAngleAxis dataKey="axis" tick={<AxisTick rtl={dir === "rtl"} />} />
             <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
             <Tooltip
               contentStyle={{

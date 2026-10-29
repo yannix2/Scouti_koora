@@ -272,7 +272,7 @@ function GemsList({ gems, hovered, onHover }: { gems: PlayerRow[]; hovered: stri
           >
             <Monogram name={p.Player} position={p.Position} size="sm" />
             <span className="min-w-0 flex-1">
-              <Link href={playerHref(locale, p.Player)} dir="auto" className="block truncate text-start font-medium hover:underline" onFocus={() => onHover(p.Player)} onBlur={() => onHover(null)}>
+              <Link href={playerHref(locale, p.Player)} dir="auto" className="block w-fit max-w-full truncate font-medium hover:underline" onFocus={() => onHover(p.Player)} onBlur={() => onHover(null)}>
                 {p.Player}
               </Link>
               <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
