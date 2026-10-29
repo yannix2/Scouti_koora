@@ -1,0 +1,27 @@
+services:
+  player-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn services.player_service.main:app --host 0.0.0.0 --port 8001
+    ports: ["8001:8001"]
+    volumes: ["./data:/app/data"]
+
+  similarity-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn services.similarity_service.main:app --host 0.0.0.0 --port 8002
+    ports: ["8002:8002"]
+    volumes: ["./data:/app/data"]
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+    depends_on: [player-service, similarity-service]
+    environment:
+      - PLAYER_SERVICE=http://player-service:8001
+      - SIMILARITY_SERVICE=http://similarity-service:8002

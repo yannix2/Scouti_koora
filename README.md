@@ -1,4 +1,4 @@
-# ⚽ ScoutIQ — AI-Powered Football Talent Discovery System
+# ⚽ ScoutiKoora — AI-Powered Football Talent Discovery System
 
 > Discover hidden football talent across 32+ leagues worldwide using machine learning, real-time statistics, and business intelligence dashboards.
 
@@ -25,7 +25,7 @@
 
 ## 🎯 Project Overview
 
-**ScoutIQ** is an AI + BI application that helps football scouts, clubs, and agents discover undervalued talent across 32+ leagues worldwide. It combines real-time player statistics from FBref with market intelligence from Transfermarkt to power three machine learning models:
+**ScoutiKoora** is an AI + BI application that helps football scouts, clubs, and agents discover undervalued talent across 32+ leagues worldwide. It combines real-time player statistics from FBref with market intelligence from Transfermarkt to power three machine learning models:
 
 | Problem | Our Solution |
 |---|---|
@@ -730,7 +730,7 @@ python src/data/pipeline.py
 
 ## 👥 Target Users
 
-| User Type | Pain Point | How ScoutIQ Helps |
+| User Type | Pain Point | How ScoutiKoora Helps |
 |---|---|---|
 | **Freelance scouts** | Miss talent in non-top leagues | 32+ leagues covered, AI similarity search |
 | **Football clubs (div 2/3)** | Limited scouting budget | 10× cheaper than Wyscout, data-driven |
@@ -802,4 +802,4 @@ python src/data/pipeline.py
 
 ---
 
-*ScoutIQ — Find the next Mbappe before anyone else does.*
+*ScoutiKoora — Find the next Mbappe before anyone else does.*

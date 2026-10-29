@@ -1,9 +1,18 @@
-venv/ 
-__pycache__/ 
-*.pyc 
-.env 
-.csv
-.ipynb_checkpoints/ 
+venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+*.csv
+.ipynb_checkpoints/
 data/
 node_modules/
 dist/
+.neon
+services/logs/
+# Local tool config that holds API keys
+opencode.json
+# Generated review captures and decision-page state
+.impeccable/review/
+.impeccable/questions/
+.impeccable/hook.cache.json
