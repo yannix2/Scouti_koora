@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, delete, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from src.db.engine import get_db
 from src.db.models import User, SavedPlayer, ScoutingList, ScoutingListItem, PlayerView
@@ -15,9 +15,21 @@ router = APIRouter(prefix="/scouting", tags=["scouting"])
 
 # ── Schemas ──────────────────────────────────────────────────────────
 
+PlayerName = Field(min_length=1, max_length=100)
+
+
+def _check_player_name(v: str) -> str:
+    # Names are forwarded as URL path segments to internal services; block path tricks.
+    if "/" in v or "\\" in v or ".." in v:
+        raise ValueError("Invalid player name")
+    return v.strip()
+
+
 class SavePlayerRequest(BaseModel):
-    player_name: str
+    player_name: str = PlayerName
     notes: Optional[str] = None
+
+    _name = field_validator("player_name")(_check_player_name)
 
 class CreateListRequest(BaseModel):
     name: str
@@ -30,13 +42,17 @@ class UpdateListRequest(BaseModel):
     is_public: Optional[bool] = None
 
 class AddListItemRequest(BaseModel):
-    player_name: str
+    player_name: str = PlayerName
     notes: Optional[str] = None
 
+    _name = field_validator("player_name")(_check_player_name)
+
 class TrackRequest(BaseModel):
-    player_name: str
+    player_name: str = PlayerName
     interaction_type: str = "view"  # view, save, compare, search
     metadata_json: Optional[str] = None
+
+    _name = field_validator("player_name")(_check_player_name)
 
 # ── Saved Players ────────────────────────────────────────────────────
 

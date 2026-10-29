@@ -85,7 +85,7 @@ async def search_players(q: str = Query(..., min_length=2), top_n: int = 10):
 @app.get("/players/{name}")
 async def player_profile(name: str):
     try:
-        data = await _proxy(f"{PLAYER_SERVICE}/players/{urllib.parse.quote(name)}")
+        data = await _proxy(f"{PLAYER_SERVICE}/players/{urllib.parse.quote(name, safe='')}")
         return _map_player(data)
     except HTTPStatusError as e:
         if e.response.status_code == 404:
@@ -97,7 +97,7 @@ async def player_profile(name: str):
 async def similar_players(player_name: str, top_n: int = 10, same_position: bool = True):
     try:
         data = await _proxy(
-            f"{SIMILARITY_SERVICE}/similar/{urllib.parse.quote(player_name)}",
+            f"{SIMILARITY_SERVICE}/similar/{urllib.parse.quote(player_name, safe='')}",
             {"top_n": top_n, "same_position": str(same_position).lower()},
         )
         return _map_players(data)
@@ -278,7 +278,7 @@ def _compute_radar(p: dict) -> dict:
 @app.get("/radar/{name}")
 async def player_radar(name: str):
     try:
-        profile = await _proxy(f"{PLAYER_SERVICE}/players/{urllib.parse.quote(name)}")
+        profile = await _proxy(f"{PLAYER_SERVICE}/players/{urllib.parse.quote(name, safe='')}")
     except HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(404, f"Player not found: {name}")
@@ -425,7 +425,7 @@ def _get_verdict(r: dict) -> str:
 @app.get("/report/{name}")
 async def player_report(name: str):
     try:
-        profile = await _proxy(f"{PLAYER_SERVICE}/players/{urllib.parse.quote(name)}")
+        profile = await _proxy(f"{PLAYER_SERVICE}/players/{urllib.parse.quote(name, safe='')}")
     except HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(404, f"Player not found: {name}")

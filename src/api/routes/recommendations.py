@@ -21,7 +21,7 @@ router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 async def _fetch_similar(client: AsyncClient, player: str, top_n: int = 10):
     try:
         r = await client.get(
-            f"{SIMILARITY_SERVICE}/similar/{urllib.parse.quote(player)}",
+            f"{SIMILARITY_SERVICE}/similar/{urllib.parse.quote(player, safe='')}",
             params={"top_n": top_n, "same_position": "true"},
             timeout=10,
         )

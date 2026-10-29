@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 from urllib.parse import urlparse, urlunparse
@@ -7,12 +8,20 @@ class Settings(BaseSettings):
     # Pooled (-pooler) URL for the app; direct URL for migrations. Both pulled by `neon env pull`.
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/scoutiq"
     database_url_unpooled: str = ""
-    jwt_secret: str = "change-me-in-production"
+    jwt_secret: str = ""  # required: set JWT_SECRET in .env (32+ random characters)
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60
     jwt_refresh_expire_days: int = 7
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def _strong_secret(cls, v: str) -> str:
+        # A guessable secret lets anyone forge access tokens, so refuse to start without a real one.
+        if len(v) < 32 or v in {"change-me-in-production", "generate-a-random-secret-here"}:
+            raise ValueError('JWT_SECRET must be at least 32 random characters, e.g. python -c "import secrets; print(secrets.token_urlsafe(48))"')
+        return v
 
 
 def to_asyncpg_url(raw: str) -> str:
